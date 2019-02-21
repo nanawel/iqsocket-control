@@ -15,6 +15,7 @@ See http://www.iqtronic.com/wp-content/uploads/2015/07/User-manual-IQTS-IP200-v1
 
 - PHP 7.x with SNMP support (package `php-snmp` for Debian/Ubuntu,
 same name under Archlinux)
+- [Composer](https://getcomposer.org/download/)
 
 ## Installation
 
@@ -25,7 +26,7 @@ composer install
 
 ## Usage
 
-> See also [Docker usage](#Docker) below.
+> See also [Docker usage](#docker) below.
 
 ### Get status (XML or SNMP)
 
