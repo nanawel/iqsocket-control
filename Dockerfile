@@ -6,6 +6,7 @@ RUN chmod 0755 /usr/local/bin/composer
 WORKDIR /app
 
 COPY . /app
+COPY .env.prod /app/.env
 RUN COMPOSER_HOME=/tmp/composer COMPOSER_CACHE_DIR=/tmp/composer/cache composer install
 
 ENTRYPOINT ["/app/bin/console"]

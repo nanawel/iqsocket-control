@@ -2,9 +2,9 @@ monolog:
     handlers:
         console_log:
             type: console
-            level: debug
+            level: notice
 
         file_handler:
             type: stream
             path: "%kernel.logs_dir%/everything.log"
-            level: debug
+            level: notice
