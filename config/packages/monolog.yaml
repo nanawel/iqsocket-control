@@ -1,0 +1,10 @@
+monolog:
+    handlers:
+        console_log:
+            type: console
+            level: debug
+
+        file_handler:
+            type: stream
+            path: "%kernel.logs_dir%/everything.log"
+            level: debug
