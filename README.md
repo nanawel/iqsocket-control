@@ -114,7 +114,7 @@ Options:
 
 ```
 
-Example (with a non-null lost packet ratio):
+Example:
 ```
 $ bin/console iqsc:watchdog -d30 192.168.1.250
 Starting watchdog (see logs for details)
