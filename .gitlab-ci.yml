@@ -8,7 +8,6 @@ before_script:
   - export CI_COMMIT_TAG_MAJOR=$(bash -c $'echo "${CI_COMMIT_TAG}" | awk -F "." \'{ print $1 }\'')
   - export CI_COMMIT_TAG_MINOR=$(bash -c $'echo "${CI_COMMIT_TAG}" | awk -F "." \'{ print $1 "." $2 }\'')
   - export CI_COMMIT_TAG_PATCH=$(bash -c $'echo "${CI_COMMIT_TAG}" | awk -F "." \'{ print $1 "." $2 "." ($3+0) }\'')
-  - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN ${CI_REGISTRY}
   - env # Dump env for debug
 
 build:
