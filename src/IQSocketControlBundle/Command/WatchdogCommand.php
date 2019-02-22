@@ -46,7 +46,7 @@ class WatchdogCommand extends \Symfony\Component\Console\Command\Command
                 'ip-address',
                 InputArgument::REQUIRED | InputArgument::IS_ARRAY,
                 'IQSocket IP address or hostname',
-                ['192.168.0.100']
+                [IQSocket::DEFAULT_IP]
             );
     }
 
@@ -76,7 +76,7 @@ class WatchdogCommand extends \Symfony\Component\Console\Command\Command
             foreach ($connectors as $connector) {
                 try {
                     $ruleFound = false;
-                    foreach ([1, 2, 3] as $ruleNum) {
+                    foreach ($connector->getActiveRules() as $ruleNum) {
                         if (strlen($host = $connector->getXmlStatus()["ip$ruleNum"])) {
                             $ruleFound = true;
                             $this->logger->info(sprintf(
@@ -85,11 +85,11 @@ class WatchdogCommand extends \Symfony\Component\Console\Command\Command
                                 $connector->getIpAddress(),
                                 $ruleNum
                             ));
-                            if ($ratio = $connector->getLostPacketRatio($ruleNum)) {
-                                $this->logger->notice('Lost packet ratio = ' . $ratio);
+                            if ($ratio = $connector->getPacketLossRatio($ruleNum)) {
+                                $this->logger->notice('Packet loss ratio = ' . $ratio);
                                 if ($this->ping($host)) {
                                     $this->logger->info(sprintf(
-                                        'Host %s is available, restart cancellation signal sent.',
+                                        'Host %s is available, restart cancellation signal has been sent.',
                                         $host
                                     ));
                                     $connector->cancelRestart();
@@ -102,7 +102,7 @@ class WatchdogCommand extends \Symfony\Component\Console\Command\Command
                                 }
                             }
                             else {
-                                $this->logger->debug('Lost packet ratio = 0, good!');
+                                $this->logger->debug('Packet loss ratio = 0, good!');
                             }
                             break;
                         }
@@ -113,7 +113,7 @@ class WatchdogCommand extends \Symfony\Component\Console\Command\Command
                 }
                 catch (\Throwable $e) {
                     $this->logger->error(sprintf(
-                        'Error while attempting to control device at %s (%s)',
+                        'Error while attempting to access device at %s (%s)',
                         $connector->getIpAddress(),
                         $e->getMessage()
                     ), ['exception' => $e]);

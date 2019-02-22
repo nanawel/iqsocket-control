@@ -1,0 +1,32 @@
+
+stages:
+  - build
+  - release
+
+before_script:
+  - export CI_COMMIT_SHA_SHORT=$(bash -c 'echo ${CI_COMMIT_SHA:0:8}')
+  - export CI_COMMIT_TAG_MAJOR=$(bash -c $'echo "${CI_COMMIT_TAG}" | awk -F "." \'{ print $1 }\'')
+  - export CI_COMMIT_TAG_MINOR=$(bash -c $'echo "${CI_COMMIT_TAG}" | awk -F "." \'{ print $1 "." $2 }\'')
+  - export CI_COMMIT_TAG_PATCH=$(bash -c $'echo "${CI_COMMIT_TAG}" | awk -F "." \'{ print $1 "." $2 "." ($3+0) }\'')
+  - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN ${CI_REGISTRY}
+  - env # Dump env for debug
+
+build:
+  stage: build
+  script:
+    - docker build --tag ${CI_REGISTRY_IMAGE}:${CI_COMMIT_REF_SLUG} --tag ${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHA_SHORT} .
+
+release:
+  stage: release
+  script:
+    - docker push ${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHA_SHORT}
+    - |-
+      if [ -z "${CI_COMMIT_TAG}" ]; then
+        docker push ${CI_REGISTRY_IMAGE}:${CI_COMMIT_REF_SLUG}
+      else
+        tags="${CI_COMMIT_TAG} ${CI_COMMIT_TAG_MAJOR} ${CI_COMMIT_TAG_MINOR} ${CI_COMMIT_TAG_PATCH} latest"
+        for t in $tags; do
+          docker tag ${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHA_SHORT} ${CI_REGISTRY_IMAGE}:${t}
+          docker push ${CI_REGISTRY_IMAGE}:${t}
+        done
+      fi

@@ -1,8 +1,18 @@
 {
+    "name": "nanawel/iqsocket-control",
     "type": "project",
-    "license": "proprietary",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Anael Ollier",
+            "email": "nanawel@gmail.com",
+            "homepage": "https://www.lanterne-rouge.info",
+            "role": "Developer"
+        }
+    ],
     "require": {
         "php": "^7.1.3",
+        "ext-snmp": "*",
         "ext-ctype": "*",
         "ext-iconv": "*",
         "symfony/console": "4.2.*",

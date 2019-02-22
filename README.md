@@ -120,10 +120,6 @@ $ bin/console iqsc:watchdog -d30 192.168.1.250
 Starting watchdog (see logs for details)
 ```
 
-## Logs
-
-See `var/log/everything.log`
-
 ## Docker
 
 You might prefer using a Docker container to run this tool.
@@ -134,14 +130,22 @@ To do so, just build the container using the provided [`Dockerfile`](Dockerfile)
 docker build -t iqsocket-control .
 ```
 
-Then run the commands using ephemeral containers (`--rm`) like so:
+Then run any of the commands above
+- preferably using **ephemeral containers**: `--rm`
+- with an **init wrapper** to handle syscalls (like Ctrl-C): `--init`
+- using your **own user ID** to avoid running it as root: `--user $(id -u)`
 
+```
+docker run --rm --init --user $(id -u) iqsocket-control iqsc:<command> <options> <IP>
+```
+
+Examples:
 - Get the status of device at 192.168.0.100
 ```
-docker run --rm iqsocket-control iqsc:status 192.168.0.100
+docker run --rm --init --user $(id -u) iqsocket-control iqsc:status 192.168.0.100
 ```
 
-- Run watchdog on device at 192.168.0.100
+- Run watchdog on devices at 192.168.0.100 and 192.168.0.101
 ```
-docker run --rm iqsocket-control iqsc:watchdog 192.168.0.100
+docker run --rm --init --user $(id -u) iqsocket-control iqsc:watchdog 192.168.0.100 192.168.0.101
 ```
