@@ -46,7 +46,6 @@ Arguments:
 Options:
   -s, --use-snmp        Use SNMP instead of XML
   -h, --help            Display this help message
-
 ```
 
 Example:
@@ -111,13 +110,51 @@ Options:
   -d, --delay=DELAY     Polling delay [default: 30]
   -l, --loops=LOOPS     Max loops (0 for no limit) [default: 0]
   -h, --help            Display this help message
-
 ```
 
 Example:
 ```
 $ bin/console iqsc:watchdog -d30 192.168.1.250
 Starting watchdog (see logs for details)
+```
+
+### Switch output ON/OFF
+
+`iqsc:switch <status> <ip-address>...`
+
+```
+$ bin/console iqsc:switch -h
+Description:
+  [IQSC] Switch ON or OFF the output socket
+
+Usage:
+  iqsc:switch <status> <ip-address>...
+
+Arguments:
+  status                ON or OFF
+  ip-address            IQSocket IP address or hostname [default: ["192.168.0.100"]]
+
+Options:
+  -h, --help            Display this help message
+```
+
+### Restart output
+
+`iqsc:restart <ip-address>...`
+
+```
+$ bin/console iqsc:restart -h
+Description:
+  [IQSC] Restart IQSocket output socket
+
+Usage:
+  iqsc:restart <ip-address>...
+
+Arguments:
+  ip-address            IQSocket IP address or hostname [default: ["192.168.0.100"]]
+
+Options:
+  -h, --help            Display this help message
 ```
 
 ## Docker
