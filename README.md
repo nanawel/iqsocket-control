@@ -11,6 +11,9 @@ SNMP to the device.
 
 See http://www.iqtronic.com/wp-content/uploads/2015/07/User-manual-IQTS-IP200-v1_0r1.pdf
 
+> :warning:
+> HTTP authentication is currently **not** supported. Feel free to propose a PR.
+
 ## Requirements
 
 - PHP 7.x with SNMP support (package `php-snmp` for Debian/Ubuntu,
