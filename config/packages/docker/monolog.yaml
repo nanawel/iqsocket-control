@@ -1,13 +1,13 @@
 monolog:
     handlers:
-        main:
-            type:         fingers_crossed
-            action_level: debug
-            handler:      nested
-        nested:
+        stdout:
+            type:  stream
+            path:  "php://stdout"
+            level: debug
+        stderr:
             type:  stream
             path:  "php://stderr"
-            level: debug
+            level: notice
         console:
-            type: console
+            type:  console
             level: debug

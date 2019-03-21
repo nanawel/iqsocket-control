@@ -95,7 +95,7 @@ class WatchdogCommand extends \Symfony\Component\Console\Command\Command
                                     $connector->cancelRestart();
                                 }
                                 else {
-                                    $this->logger->notice(sprintf(
+                                    $this->logger->warning(sprintf(
                                         'Host %s *does* seem unavailable, restart cancellation signal skipped.',
                                         $host
                                     ));
@@ -108,11 +108,11 @@ class WatchdogCommand extends \Symfony\Component\Console\Command\Command
                         }
                     }
                     if (!$ruleFound) {
-                        $this->logger->warning('No active rule found for device ' . $connector->getIpAddress());
+                        $this->logger->error('No active rule found for device ' . $connector->getIpAddress());
                     }
                 }
                 catch (\Throwable $e) {
-                    $this->logger->error(sprintf(
+                    $this->logger->critical(sprintf(
                         'Error while attempting to access device at %s (%s)',
                         $connector->getIpAddress(),
                         $e->getMessage()
