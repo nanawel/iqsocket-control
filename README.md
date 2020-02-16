@@ -160,6 +160,25 @@ Options:
   -h, --help            Display this help message
 ```
 
+### Cancel Restart output
+
+`iqsc:cancel-restart <ip-address>...`
+
+```
+$ bin/console iqsc:cancel-restart -h
+Description:
+  [IQSC] Cancel IQSocket restart
+
+Usage:
+  iqsc:cancel-restart <ip-address>...
+
+Arguments:
+  ip-address            IQSocket IP address or hostname [default: ["192.168.0.100"]]
+
+Options:
+  -h, --help            Display this help message
+```
+
 ## Docker
 
 You might prefer using a Docker container to run this tool.
