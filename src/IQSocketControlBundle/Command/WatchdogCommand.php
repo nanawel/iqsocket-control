@@ -19,7 +19,7 @@ class WatchdogCommand extends \Symfony\Component\Console\Command\Command
         self::RULES_EVALUATION_AND,
         self::RULES_EVALUATION_OR
     ];
-    const DEFAULT_RULES_EVALUATION = self::RULES_EVALUATION_AND;
+    const DEFAULT_RULES_EVALUATION = self::RULES_EVALUATION_OR;
 
     /** @var \Psr\Log\LoggerInterface */
     protected $logger;
