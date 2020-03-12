@@ -13,6 +13,14 @@ class WatchdogCommand extends \Symfony\Component\Console\Command\Command
 {
     const DEFAULT_POLLING_DELAY = 30;
 
+    const RULES_EVALUATION_AND = 'AND';
+    const RULES_EVALUATION_OR  = 'OR';
+    const RULES_EVALUATIONS  = [
+        self::RULES_EVALUATION_AND,
+        self::RULES_EVALUATION_OR
+    ];
+    const DEFAULT_RULES_EVALUATION = self::RULES_EVALUATION_AND;
+
     /** @var \Psr\Log\LoggerInterface */
     protected $logger;
 
@@ -36,6 +44,16 @@ class WatchdogCommand extends \Symfony\Component\Console\Command\Command
                 self::DEFAULT_POLLING_DELAY
             )
             ->addOption(
+                'rules-eval',
+                'E',
+                InputOption::VALUE_REQUIRED,
+                sprintf(
+                    'Rules evaluation (%s), as configured on the device.',
+                    implode(', ', self::RULES_EVALUATIONS)
+                ),
+                self::DEFAULT_RULES_EVALUATION
+            )
+            ->addOption(
                 'loops',
                 'l',
                 InputOption::VALUE_REQUIRED,
@@ -56,16 +74,27 @@ class WatchdogCommand extends \Symfony\Component\Console\Command\Command
 
         ini_set('max_execution_time', 0);
 
+        $ruleEvaluation = strtoupper($input->getOption('rules-eval'));
+        if (!in_array($ruleEvaluation, self::RULES_EVALUATIONS)) {
+            throw new \InvalidArgumentException('Invalid value for rule-eval.');
+        }
+
         $output->writeln('Starting watchdog (see logs for details)');
-        $this->runLoop($connectors, $input->getOption('delay'), $input->getOption('loops'));
+        $this->runLoop(
+            $connectors,
+            $input->getOption('delay'),
+            $ruleEvaluation,
+            $input->getOption('loops')
+        );
     }
 
     /**
      * @param IQSocket[] $connectors
      * @param int $delay
+     * @param string $rulesEvaluation
      * @param int $maxLoops
      */
-    protected function runLoop(array $connectors, $delay, $maxLoops) {
+    protected function runLoop(array $connectors, $delay, $rulesEvaluation, $maxLoops) {
         $this->logger->notice(sprintf('Starting watchdog with %d device(s)', count($connectors)));
 
         if ($maxLoops = max(0, $maxLoops)) {
@@ -75,40 +104,61 @@ class WatchdogCommand extends \Symfony\Component\Console\Command\Command
         while(true) {
             foreach ($connectors as $connector) {
                 try {
-                    $ruleFound = false;
-                    foreach ($connector->getActiveRules() as $ruleNum) {
-                        if (strlen($host = $connector->getXmlStatus()["ip$ruleNum"])) {
-                            $ruleFound = true;
-                            $this->logger->info(sprintf(
-                                'Checking host %s for device %s (rule #%d)',
-                                $host,
-                                $connector->getIpAddress(),
-                                $ruleNum
-                            ));
-                            if ($ratio = $connector->getPacketLossRatio($ruleNum)) {
-                                $this->logger->notice('Packet loss ratio = ' . $ratio);
-                                if ($this->ping($host)) {
-                                    $this->logger->info(sprintf(
-                                        'Host %s is available, restart cancellation signal has been sent.',
-                                        $host
-                                    ));
-                                    $connector->cancelRestart();
-                                }
-                                else {
-                                    $this->logger->warning(sprintf(
-                                        'Host %s *does* seem unavailable, restart cancellation signal skipped.',
-                                        $host
-                                    ));
-                                }
+                    $ruleHosts = $connector->getActiveRuleHosts();
+
+                    if (!$ruleHosts) {
+                        $this->logger->error('No active rule found for device ' . $connector->getIpAddress());
+                        continue;
+                    }
+
+                    $successHosts = 0;
+                    $packetLossFound = 0;
+                    foreach ($ruleHosts as $ruleNum => $host) {
+                        $this->logger->info(sprintf(
+                            'Checking host %s for device %s (rule #%d)',
+                            $host,
+                            $connector->getIpAddress(),
+                            $ruleNum
+                        ));
+                        if ($ratio = $connector->getPacketLossRatio($ruleNum)) {
+                            $packetLossFound++;
+                            $this->logger->notice(sprintf('Packet loss ratio = %d for host %s.', $ratio, $host));
+                            if ($this->ping($host)) {
+                                $successHosts++;
+                                $this->logger->info(sprintf('Host %s is available.', $host));
                             }
                             else {
-                                $this->logger->debug('Packet loss ratio = 0, good!');
+                                $this->logger->warning(sprintf('Host %s *does* seem unavailable.', $host));
                             }
-                            break;
+                        }
+                        else {
+                            $this->logger->debug(sprintf('Packet loss ratio = 0 for host %s.', $host));
                         }
                     }
-                    if (!$ruleFound) {
-                        $this->logger->error('No active rule found for device ' . $connector->getIpAddress());
+                    if (!$packetLossFound) {
+                        $this->logger->debug(sprintf(
+                            'No packet loss detected for device %s, good!',
+                            $connector->getIpAddress()
+                        ));
+                        continue;
+                    }
+
+                    $shouldRestart = false;
+                    // At least one host failed and we needed ANY rule to match => should restart
+                    if ($successHosts < count($ruleHosts) && $rulesEvaluation == self::RULES_EVALUATION_OR) {
+                        $shouldRestart = true;
+                    }
+                    // No host succeeded and we needed ALL rules to match => should restart
+                    elseif ($successHosts == 0 && $rulesEvaluation == self::RULES_EVALUATION_AND) {
+                        $shouldRestart = true;
+                    }
+
+                    if (!$shouldRestart) {
+                        $this->logger->info(sprintf(
+                            'Given ruleset did not match (evaluation = %s), sending restart cancellation signal.',
+                            strtoupper($rulesEvaluation)
+                        ));
+                        $connector->cancelRestart();
                     }
                 }
                 catch (\Throwable $e) {

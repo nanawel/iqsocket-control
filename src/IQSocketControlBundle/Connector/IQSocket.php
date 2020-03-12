@@ -113,12 +113,23 @@ class IQSocket implements Constants
     }
 
     /**
+     * Note: There's no field from either XML or SNMP that can tell whether a
+     *       rule is enabled or not, so we just check the "host" field instead.
+     *
      * @return int[]
      * @throws ConnectionException
      */
-    public function getActiveRules() {
-        // TODO Is this the actual format returned?
-        return explode(',', $this->snmpGet(self::SNMP_PATH_GET_ACTIVE_RULES));
+    public function getActiveRuleHosts() {
+        $xmlStatus = $this->getXmlStatus();
+
+        $activeRules = [];
+        for($ruleNum = 1; $ruleNum <= 3; $ruleNum++) {
+            if ($host = $xmlStatus["ip{$ruleNum}"]) {
+                $activeRules[$ruleNum] = $host;
+            }
+        }
+
+        return $activeRules;
     }
 
     /**
