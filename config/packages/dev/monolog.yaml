@@ -2,7 +2,7 @@ monolog:
     handlers:
         console_log:
             type: console
-            level: info
+            level: debug
 
         file_handler:
             type: stream
