@@ -1,13 +1,16 @@
 monolog:
     handlers:
-        stdout:
-            type:  stream
-            path:  "php://stdout"
-            level: debug
+        # Console log for "docker logs" command
         stderr:
             type:  stream
-            path:  "php://stderr"
+            path:  'php://stderr'
             level: notice
-        console:
-            type:  console
-            level: debug
+        # Log file with more detailed info
+        file:
+            type:  rotating_file
+            path:  '%kernel.logs_dir%/%kernel.environment%.log'
+            level: info
+            max_files: 10
+        # Disable default "stdout" handler
+        stdout:
+            type: 'null'
