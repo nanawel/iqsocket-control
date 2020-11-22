@@ -1,7 +1,6 @@
 
 stages:
   - build
-  - release
 
 before_script:
   - export CI_COMMIT_SHA_SHORT=$(bash -c 'echo ${CI_COMMIT_SHA:0:8}')
@@ -14,10 +13,6 @@ build:
   stage: build
   script:
     - docker build --tag ${CI_REGISTRY_IMAGE}:${CI_COMMIT_REF_SLUG} --tag ${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHA_SHORT} .
-
-release:
-  stage: release
-  script:
     - docker push ${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHA_SHORT}
     - |-
       if [ -z "${CI_COMMIT_TAG}" ]; then
